@@ -42,17 +42,19 @@ app.post('/user', upload.single('image'), async (req, resp) => {
 
     const data = new user(userData);
     let result = await data.save();
-    resp.send(result);
+    
     if (result){
-        jwt.sign({result},jwtkey ,{expirexIn:"2h"},(err,token) => {
+        jwt.sign({result},jwtkey ,{expiresIn:"2h"},(err,token) => {
 if(err){
     console .log({result:"something went to wrong"})
 }
-resp.send ({result, auth:token})
+else {
+                resp.send({ result, auth: token });
+            }
         } )
     }
 });
-app.put('/user/:id',upload.single('image'),async(req,resp)=>{
+app.put('/user/:id',upload.single('image'), verification,async(req,resp)=>{
     let data= req.body
      if (req.file) {
        data.imagePath = req.file.path;
@@ -61,11 +63,11 @@ app.put('/user/:id',upload.single('image'),async(req,resp)=>{
     let result  =  await user.updateOne({_id:req.params.id},{$set:data})
     resp.send(result)
 })
-app.get('/singleuser/:_id',async(req,resp)=>{
+app.get('/singleuser/:_id', verification,async(req,resp)=>{
 const data = await user.findOne({_id:req.params._id})
 resp.send(data)
 })
-app.delete('/delete/:id', async (req, res) => {
+app.delete('/delete/:id',  verification,async (req, res) => {
     try {
         const result = await user.deleteOne({ _id: req.params.id });
         res.send(result);
@@ -74,13 +76,13 @@ app.delete('/delete/:id', async (req, res) => {
     }
 });
 function verification(req,resp,next){
-    let token = req.header['authorization']
+    let token = req.headers['authorization']
     if (token){
 token = token.split(' ')[1]
 console.log('middleware called',token)
-jwt.verify(token ,jwt,(err,valid)=>{
+jwt.verify(token ,jwtkey,(err,valid)=>{
 if(err){
-    resp.status(401).send({err:'please provide valid token'})
+    resp.status(401).send({result:'please provide valid token'})
 }
 else{
     next()
