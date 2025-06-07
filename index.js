@@ -2,7 +2,8 @@
 const express = require('express')
 const multer = require('multer');
 const cors = require('cors');
-
+const jwt  = require ('jsonwebtoken');
+const jwtkey = 'e-driver'
 
 require('./db/Config');
 const user = require ('./db/User');
@@ -42,6 +43,14 @@ app.post('/user', upload.single('image'), async (req, resp) => {
     const data = new user(userData);
     let result = await data.save();
     resp.send(result);
+    if (result){
+        jwt.sign({result},jwtkey ,{expirexIn:"2h"},(err,token) => {
+if(err){
+    console .log({result:"something went to wrong"})
+}
+resp.send ({result, auth:token})
+        } )
+    }
 });
 app.put('/user/:id',upload.single('image'),async(req,resp)=>{
     let data= req.body
