@@ -73,4 +73,24 @@ app.delete('/delete/:id', async (req, res) => {
         res.status(500).send({ error: "Delete failed" });
     }
 });
+function verification(req,resp,next){
+    let token = req.header['authorization']
+    if (token){
+token = token.split(' ')[1]
+console.log('middleware called',token)
+jwt.verify(token ,jwt,(err,valid)=>{
+if(err){
+    resp.status(401).send({err:'please provide valid token'})
+}
+else{
+    next()
+}
+})
+    }
+    else{
+      resp.status(403).send({result:"please add token with geader"})  
+    }
+
+
+}
 app.listen(5000)
